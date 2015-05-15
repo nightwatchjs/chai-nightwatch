@@ -15,10 +15,4 @@ describe('plugins', function () {
     var expect = chai.expect;
     expect(expect('').testing).to.equal('successful');
   });
-
-  it('double plugin', function () {
-    chai.expect(function () {
-      chai.use(plugin);
-    }).to.not.throw();
-  });
 });

@@ -1,5 +1,5 @@
 describe('configuration', function () {
-  var assert = chai.assert;
+  var assert = require('assert');
 
   var origConfig;
 
@@ -21,57 +21,6 @@ describe('configuration', function () {
   function fooThrows () {
     chai.expect('foo').to.be.equal('bar');
   }
-
-  it('includeStack is true', function () {
-    chai.config.includeStack = true;
-
-    try {
-      fooThrows();
-      assert.ok(false, 'should not get here because error thrown');
-    } catch (err) {
-      // not all browsers support err.stack
-      if ('undefined' !== typeof err.stack) {
-        assert.include(err.stack, 'assertEqual', 'should have internal stack trace in error message');
-        assert.include(err.stack, 'fooThrows', 'should have user stack trace in error message');
-      }
-    }
-
-  });
-
-  it('includeStack is false', function () {
-    chai.config.includeStack = false;
-
-    try {
-      fooThrows();
-      assert.ok(false, 'should not get here because error thrown');
-    } catch (err) {
-      // IE 10 supports err.stack in Chrome format, but without
-      // `Error.captureStackTrace` support that allows tuning of the error
-      // message.
-      if ('undefined' !== typeof err.stack && 'undefined' !== typeof Error.captureStackTrace) {
-        assert.notInclude(err.stack, 'assertEqual', 'should not have internal stack trace in error message');
-        assert.include(err.stack, 'fooThrows', 'should have user stack trace in error message');
-      }
-    }
-  });
-
-  describe('truncateThreshold', function() {
-    it('is 20', function() {
-      chai.config.truncateThreshold = 20;
-
-      err(function() {
-        assert.deepEqual({v: 'something longer than 20'}, {v: 'x'});
-      }, "expected { Object (v) } to deeply equal { v: 'x' }");
-    });
-
-    it('is 0', function() {
-      chai.config.truncateThreshold = 0;
-
-      err(function() {
-        assert.deepEqual({v: 'something longer than 20'}, {v: 'x'});
-      }, "expected { v: 'something longer than 20' } to deeply equal { v: 'x' }");
-    });
-  });
 
   describe('deprecated properties', function() {
     var origWarnFn;

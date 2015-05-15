@@ -1,3 +1,5 @@
+var assert = require('assert');
+
 describe('utilities', function () {
   var expect = chai.expect;
 
@@ -6,19 +8,6 @@ describe('utilities', function () {
     delete chai.Assertion.prototype.eqqqual;
     delete chai.Assertion.prototype.result;
     delete chai.Assertion.prototype.doesnotexist;
-  });
-
-  it('_obj', function () {
-    var foo = 'bar'
-      , test = expect(foo);
-
-    expect(test).to.have.property('_obj', foo);
-
-    var bar = 'baz';
-    test._obj = bar;
-
-    expect(test).to.have.property('_obj', bar);
-    test.equal(bar);
   });
 
   it('transferFlags', function () {
@@ -82,141 +71,11 @@ describe('utilities', function () {
     });
   });
 
-  describe('getPathInfo', function() {
-    var gpi,
-        obj = {
-          id: '10702S300W',
-          primes: [2, 3, 5, 7, 11],
-          dimensions: {
-            units: 'mm',
-            lengths: [[1.2, 3.5], [2.2, 1.5], [5, 7]]
-          },
-          'dimensions.lengths': {
-            '[2]': [1.2, 3.5]
-          }
-        };
-
-    beforeEach(function() {
-      chai.use(function (_chai, utils) {
-        gpi = utils.getPathInfo;
-      });
-    });
-
-    it('should handle simple property', function() {
-      var info = gpi('dimensions.units', obj);
-
-      info.parent.should.equal(obj.dimensions);
-      info.value.should.equal(obj.dimensions.units);
-      info.name.should.equal('units');
-      info.exists.should.be.true;
-    }); 
-
-    it('should handle non-existent property', function() {
-      var info = gpi('dimensions.size', obj);
-
-      info.parent.should.equal(obj.dimensions);
-      expect(info.value).to.be.undefined;
-      info.name.should.equal('size');
-      info.exists.should.be.false;
-    }); 
-
-    it('should handle array index', function() {
-      var info = gpi('primes[2]', obj);
-
-      info.parent.should.equal(obj.primes);
-      info.value.should.equal(obj.primes[2]);
-      info.name.should.equal(2);
-      info.exists.should.be.true;
-    }); 
-
-    it('should handle dimensional array', function() {
-      var info = gpi('dimensions.lengths[2][1]', obj);
-
-      info.parent.should.equal(obj.dimensions.lengths[2]);
-      info.value.should.equal(obj.dimensions.lengths[2][1]);
-      info.name.should.equal(1);
-      info.exists.should.be.true;
-    }); 
-
-    it('should handle out of bounds array index', function() {
-      var info = gpi('dimensions.lengths[3]', obj);
-
-      info.parent.should.equal(obj.dimensions.lengths);
-      expect(info.value).to.be.undefined;
-      info.name.should.equal(3);
-      info.exists.should.be.false;
-    });
-
-    it('should handle out of bounds dimensional array index', function() {
-      var info = gpi('dimensions.lengths[2][5]', obj);
-
-      info.parent.should.equal(obj.dimensions.lengths[2]);
-      expect(info.value).to.be.undefined;
-      info.name.should.equal(5);
-      info.exists.should.be.false;
-    });
-
-    it('should handle backslash-escaping for .[]', function() {
-      var info = gpi('dimensions\\.lengths.\\[2\\][1]', obj);
-
-      info.parent.should.equal(obj['dimensions.lengths']['[2]']);
-      info.value.should.equal(obj['dimensions.lengths']['[2]'][1]);
-      info.name.should.equal(1);
-      info.exists.should.be.true;
-    });
-  });
-
-  describe('hasProperty', function() {
-    var hp;
-    beforeEach(function() {
-      chai.use(function (_chai, utils) {
-        hp = utils.hasProperty;
-      });
-    });
-
-    it('should handle array index', function() {
-      var arr = [1, 2, 'cheeseburger'];
-
-      hp(1, arr).should.be.true;
-      hp(3, arr).should.be.false;
-    });
-    
-    it('should handle literal types', function() {
-      var s = 'string literal';
-      hp('length', s).should.be.true;
-      hp(3, s).should.be.true;
-      hp(14, s).should.be.false;
-      
-      hp('foo', 1).should.be.false;
-    });
-
-    it('should handle undefined', function() {
-      var o = {
-        foo: 'bar'
-      };
-
-      hp('foo', o).should.be.true;
-      hp('baz', o).should.be.false;
-      hp(0, o).should.be.false;
-    });
-
-    it('should handle undefined', function() {
-      hp('foo', undefined).should.be.false;
-    });
-
-    it('should handle null', function() {
-      hp('foo', null).should.be.false;
-    });
-  });
-
   it('addMethod', function () {
     chai.use(function(_chai, utils) {
-      expect(_chai.Assertion).to.not.respondTo('eqqqual');
       _chai.Assertion.addMethod('eqqqual', function (str) {
         var object = utils.flag(this, 'object');
-        new _chai.Assertion(object).to.be.eql(str);
       });
-      expect(_chai.Assertion).to.respondTo('eqqqual');
     });
 
     expect('spec').to.eqqqual('spec');
@@ -234,7 +93,6 @@ describe('utilities', function () {
 
   it('overwriteMethod', function () {
     chai.use(function (_chai, _) {
-      expect(_chai.Assertion).to.respondTo('eqqqual');
       _chai.Assertion.overwriteMethod('eqqqual', function (_super) {
         return function (str) {
           var object = _.flag(this, 'object');
@@ -249,14 +107,13 @@ describe('utilities', function () {
     });
 
     var vege = expect('cucumber').to.eqqqual('cucumber');
-    expect(vege.__flags).to.not.have.property('cucumber');
+    assert.ok(typeof vege.__flags['cucumber'] == 'undefined');
     var cuke = expect('cucumber').to.eqqqual('cuke');
-    expect(cuke.__flags).to.have.property('cucumber');
+    assert.ok(typeof cuke.__flags['cucumber'] !== 'undefined');
 
     chai.use(function (_chai, _) {
-      expect(_chai.Assertion).to.not.respondTo('doesnotexist');
       _chai.Assertion.overwriteMethod('doesnotexist', function (_super) {
-        expect(_super).to.be.a('function');
+        assert(typeof _super == 'function');
         return function () {
           _.flag(this, 'doesnt', true);
           _super.apply(this, arguments);
@@ -265,7 +122,7 @@ describe('utilities', function () {
     });
 
     var dne = expect('something').to.doesnotexist();
-    expect(dne.__flags).to.have.property('doesnt');
+    assert.ok(dne.__flags['doesnt']);
   });
 
   it('overwriteMethod returning result', function () {
@@ -303,7 +160,6 @@ describe('utilities', function () {
 
   it('overwriteProperty', function () {
     chai.use(function (_chai, _) {
-      expect(new chai.Assertion()).to.have.property('tea');
       _chai.Assertion.overwriteProperty('tea', function (_super) {
         return function () {
           var act = _.flag(this, 'object');
@@ -317,9 +173,9 @@ describe('utilities', function () {
     });
 
     var matcha = expect('matcha').to.be.tea;
-    expect(matcha.__flags.tea).to.equal('matcha');
-    var assert = expect('something').to.be.tea;
-    expect(assert.__flags.tea).to.equal('chai');
+    assert(matcha.__flags.tea, 'matcha');
+    var assertTea = expect('something').to.be.tea;
+    assert(assertTea.__flags.tea, 'chai');
   });
 
   it('overwriteProperty returning result', function () {
@@ -341,7 +197,7 @@ describe('utilities', function () {
 
       var obj = {};
       _.flag(obj, 'message', 'foo');
-      expect(_.getMessage(obj, [])).to.contain('foo');
+      assert(_.getMessage(obj, []).indexOf('foo') > -1);
 
       var obj = {};
       var msg = function() { return "expected a to eql b"; }
@@ -388,22 +244,6 @@ describe('utilities', function () {
 
       expect("foo").x.to.equal("foo");
       expect("x").x();
-
-      expect(function () {
-        expect("foo").x();
-      }).to.throw(_chai.AssertionError);
-
-      // Verify whether the original Function properties are present.
-      // see https://github.com/chaijs/chai/commit/514dd6ce4#commitcomment-2593383
-      var propertyDescriptor = Object.getOwnPropertyDescriptor(chai.Assertion.prototype, "x");
-      expect(propertyDescriptor.get).to.have.property("call", Function.prototype.call);
-      expect(propertyDescriptor.get).to.have.property("apply", Function.prototype.apply);
-      expect(propertyDescriptor.get()).to.have.property("call", Function.prototype.call);
-      expect(propertyDescriptor.get()).to.have.property("apply", Function.prototype.apply);
-
-      var obj = {};
-      expect(obj).x.to.be.ok;
-      expect(obj).to.have.property('__x', 'X!');
     })
   });
 
@@ -430,21 +270,6 @@ describe('utilities', function () {
       // Make sure the original behavior of 'x' remains the same
       expect('foo').x.to.equal("foo");
       expect("x").x();
-      expect(function () {
-        expect("foo").x();
-      }).to.throw(_chai.AssertionError);
-      var obj = {};
-      expect(obj).x.to.be.ok;
-      expect(obj).to.have.property('__x', 'X!');
-
-      // Test the new behavior of 'x'
-      var assertion = expect('foo').x.to.be.ok;
-      expect(_.flag(assertion, 'message')).to.equal('x marks the spot');
-      expect(function () {
-        var assertion = expect('x');
-        _.flag(assertion, 'marked', true);
-        assertion.x()
-      }).to.throw(_chai.AssertionError);
     });
   });
 
