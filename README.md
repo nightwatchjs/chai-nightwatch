@@ -12,6 +12,7 @@ For more information or to download plugins, view the [documentation](http://cha
 (The MIT License)
 
 Copyright (c) 2011-2015 Jake Luer <jake@alogicalparadox.com>
+
 Copyright (c) 2015 Andrei Rusu <andrei.rusu@beatfactor.net>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
