@@ -13,7 +13,7 @@
     "test": "make test"
   },
   "engines": {
-    "node": ">= 0.4.0"
+    "node": ">= 8.0.0"
   },
   "dependencies": {
     "assertion-error": "1.0.0",
